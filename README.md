@@ -1,4 +1,4 @@
-# Switch Timer App
+# Switch Timer
 
 A timer for the Nintendo Switch.
 
