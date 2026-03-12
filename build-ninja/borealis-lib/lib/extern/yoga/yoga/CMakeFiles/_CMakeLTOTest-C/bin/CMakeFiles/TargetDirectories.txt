@@ -1,0 +1,4 @@
+/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/CMakeFiles/_CMakeLTOTest-C/bin/CMakeFiles/foo.dir
+/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/CMakeFiles/_CMakeLTOTest-C/bin/CMakeFiles/boo.dir
+/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/CMakeFiles/_CMakeLTOTest-C/bin/CMakeFiles/edit_cache.dir
+/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/CMakeFiles/_CMakeLTOTest-C/bin/CMakeFiles/rebuild_cache.dir

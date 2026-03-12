@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/cmake_install.cmake",
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/cmake_install.cmake",
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/fmt/cmake_install.cmake",
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/tweeny/cmake_install.cmake",
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/opt/devkitpro/BrewProjects/Switch-Clock/build-ninja/borealis-lib/lib/extern/yoga/yoga/CMakeFiles/_CMakeLTOTest-CXX/bin/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
