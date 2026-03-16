@@ -133,62 +133,36 @@ static void save_timers_list(const std::vector<unsigned long long>& timers) {
 
 class SavedTimersActivity : public brls::Activity {
   public:
-    SavedTimersActivity(std::vector<unsigned long long>* timers, std::function<void(unsigned long long)> onSelect)
-        : savedTimers(timers), onSelectCallback(onSelect) {}
+    SavedTimersActivity(std::vector<unsigned long long>* timers, std::function<void(unsigned long long)> onSelect, std::function<void()> onDelete)
+        : savedTimers(timers), onSelectCallback(onSelect), onDeleteCallback(onDelete) {}
 
     brls::View* createContentView() override {
+        listBox = new brls::Box(brls::Axis::COLUMN);
+        
         auto container = new brls::Box(brls::Axis::COLUMN);
         container->setMargins(40, 40, 40, 40);
         
         auto title = new brls::Label();
         title->setText("Saved Timers");
         title->setFontSize(36);
-        title->setMargins(0, 0, 0, 20);
+        title->setMargins(0, 0, 40, 0);
         container->addView(title);
         
         if (savedTimers->empty()) {
-            auto emptyLabel = new brls::Label();
+            emptyLabel = new brls::Label();
             emptyLabel->setText("No saved timers yet.\n\nUse RB to save the current timer.");
             emptyLabel->setFontSize(24);
             container->addView(emptyLabel);
         } else {
+            emptyLabel = nullptr;
             auto scrollView = new brls::ScrollingFrame();
             scrollView->setGrow(1.0f);
-            
-            auto list = new brls::Box(brls::Axis::COLUMN);
-            
-            for (size_t i = 0; i < savedTimers->size(); i++) {
-                unsigned long long ms = (*savedTimers)[i];
-                
-                auto itemBox = new brls::Box(brls::Axis::ROW);
-                itemBox->setHeight(60);
-                itemBox->setCornerRadius(4);
-                itemBox->setBackgroundColor(nvgRGB(45, 45, 45));
-                itemBox->setAlignItems(brls::AlignItems::CENTER);
-                itemBox->setPadding(20, 20, 20, 20);
-                itemBox->setMargins(0, 5, 0, 5);
-                itemBox->setFocusable(true);
-                
-                auto label = new brls::Label();
-                label->setText(format_mmss(ms));
-                label->setFontSize(32);
-                label->setGrow(1.0f);
-                itemBox->addView(label);
-                
-                itemBox->registerClickAction([this, ms](brls::View* view) {
-                    onSelectCallback(ms);
-                    brls::Application::popActivity(brls::TransitionAnimation::FADE);
-                    return true;
-                });
-                
-                list->addView(itemBox);
-            }
-            
-            scrollView->setContentView(list);
+            buildList();
+            scrollView->setContentView(listBox);
             container->addView(scrollView);
         }
         
-        auto frame = new brls::AppletFrame(container);
+        frame = new brls::AppletFrame(container);
         frame->setFooterVisibility(brls::Visibility::VISIBLE);
         frame->setHeaderVisibility(brls::Visibility::VISIBLE);
         frame->setTitle("Saved Timers");
@@ -201,11 +175,67 @@ class SavedTimersActivity : public brls::Activity {
             brls::Application::popActivity(brls::TransitionAnimation::FADE);
             return true;
         });
+        registerAction("Delete", brls::BUTTON_X, [this](brls::View*) {
+            if (savedTimers->empty()) return false;
+            savedTimers->erase(savedTimers->begin() + focusedIndex);
+            onDeleteCallback();
+            if (savedTimers->empty()) {
+                brls::Application::popActivity(brls::TransitionAnimation::FADE);
+            } else {
+                focusedIndex = std::min(focusedIndex, (int)savedTimers->size() - 1);
+                buildList();
+                brls::Application::giveFocus(listBox->getChildren()[focusedIndex]);
+            }
+            return true;
+        });
+        registerAction("", brls::BUTTON_UP, [this](brls::View*) {
+            if (focusedIndex > 0) focusedIndex--;
+            return false; // let borealis handle actual focus movement
+        }, true, true);
+        registerAction("", brls::BUTTON_DOWN, [this](brls::View*) {
+            if (focusedIndex < (int)savedTimers->size() - 1) focusedIndex++;
+            return false; // let borealis handle actual focus movement
+        }, true, true);
     }
 
   private:
+    void buildList() {
+        listBox->clearViews();
+        for (size_t i = 0; i < savedTimers->size(); i++) {
+            unsigned long long ms = (*savedTimers)[i];
+            
+            auto itemBox = new brls::Box(brls::Axis::ROW);
+            itemBox->setHeight(60);
+            itemBox->setCornerRadius(4);
+            itemBox->setBackgroundColor(nvgRGB(45, 45, 45));
+            itemBox->setAlignItems(brls::AlignItems::CENTER);
+            itemBox->setPadding(20, 20, 20, 20);
+            itemBox->setMargins(0, 5, 0, 5);
+            itemBox->setFocusable(true);
+            
+            auto label = new brls::Label();
+            label->setText(format_mmss(ms));
+            label->setFontSize(32);
+            label->setGrow(1.0f);
+            itemBox->addView(label);
+            
+            itemBox->registerClickAction([this, ms](brls::View*) {
+                onSelectCallback(ms);
+                brls::Application::popActivity(brls::TransitionAnimation::FADE);
+                return true;
+            });
+            
+            listBox->addView(itemBox);
+        }
+    }
+
     std::vector<unsigned long long>* savedTimers;
     std::function<void(unsigned long long)> onSelectCallback;
+    std::function<void()> onDeleteCallback;
+    brls::Box* listBox = nullptr;
+    brls::Label* emptyLabel = nullptr;
+    brls::AppletFrame* frame = nullptr;
+    int focusedIndex = 0;
 };
 
 class TimerActivity : public brls::Activity {
@@ -376,7 +406,10 @@ class TimerActivity : public brls::Activity {
                 pausedMs = savedTimeMs;
                 updateLabel();
             };
-            brls::Application::pushActivity(new SavedTimersActivity(&savedTimers, callback), brls::TransitionAnimation::FADE);
+            auto deleteCallback = [this]() {
+                save_timers_list(savedTimers);
+            };
+            brls::Application::pushActivity(new SavedTimersActivity(&savedTimers, callback, deleteCallback), brls::TransitionAnimation::FADE);
             return true;
         });
         registerAction("Exit", brls::BUTTON_START, [this](brls::View*) {
